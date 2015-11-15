@@ -2,7 +2,6 @@ package be.k4j.rssreader;
 
 import be.k4j.rssreader.models.PushbulletNotification;
 import be.k4j.rssreader.models.RssEntry;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rometools.rome.feed.synd.SyndEntry;
 import org.jsoup.Jsoup;
@@ -14,7 +13,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.http.*;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Poller;
@@ -37,11 +35,11 @@ import java.util.Date;
 
 @RestController
 @SpringBootApplication
-public class RssreaderApplication {
-    private static final Logger LOG = LoggerFactory.getLogger(RssreaderApplication.class);
+public class RssReaderApplication {
+    private static final Logger LOG = LoggerFactory.getLogger(RssReaderApplication.class);
 
     public static void main(String[] args) {
-        SpringApplication.run(RssreaderApplication.class, args);
+        SpringApplication.run(RssReaderApplication.class, args);
     }
 
     @Autowired
@@ -80,6 +78,7 @@ public class RssreaderApplication {
             SyndEntry payload = message.getPayload();
             RssEntry rssEntry = new RssEntry(payload.getTitle(), Jsoup.parse(payload.getDescription().getValue()).text(), payload.getLink(), payload.getPublishedDate());
 
+            LOG.info(rssEntry.toString());
             Calendar cal = Calendar.getInstance();
             cal.setTime(new Date());
             cal.add(Calendar.HOUR_OF_DAY, -3);
