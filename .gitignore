@@ -4,3 +4,4 @@ build
 .idea
 rss-reader.iml
 RssConfig.java
+PushbulletConfig.java
