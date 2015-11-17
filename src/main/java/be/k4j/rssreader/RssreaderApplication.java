@@ -78,10 +78,11 @@ public class RssReaderApplication {
             SyndEntry payload = message.getPayload();
             RssEntry rssEntry = new RssEntry(payload.getTitle(), Jsoup.parse(payload.getDescription().getValue()).text(), payload.getLink(), payload.getPublishedDate());
 
-            LOG.info(rssEntry.toString());
+            //LOG.info(rssEntry.toString());
             Calendar cal = Calendar.getInstance();
             cal.setTime(new Date());
             cal.add(Calendar.HOUR_OF_DAY, -3);
+
 
             if (rssEntry.getDate().after(cal.getTime())) {
 
@@ -93,36 +94,41 @@ public class RssReaderApplication {
                 PushbulletNotification notification = new PushbulletNotification();
                 notification.setType("note");
                 notification.setTitle(rssEntry.getTitle());
-                notification.setBody(rssEntry.getValue());
+                notification.setBody("[["+ rssEntry.getDate().toString() +"]]" + rssEntry.getValue());
 
-
-                /**
-                 * Check if notification is `urgent`
-                 */
                 String b = notification.getBody();
 
-                //Step 1: Check if `Ster des Doods` occurs in the notification
-                if (b.contains("Ster des Doods")) {
-                    //Step 2: Check if the notification is about one of my "save-moons"
+                ArrayList<String> saveMoons = new ArrayList<>();
+                saveMoons.add("1:77:8");
+                saveMoons.add("1:159:9");
+                saveMoons.add("1:240:9");
 
-                    ArrayList<String> saveMoons = new ArrayList<String>();
-                    saveMoons.add("1:77:8");
-                    saveMoons.add("1:159:9");
-                    saveMoons.add("1:240:9");
+                cal.setTime(new Date());
+                cal.set(Calendar.HOUR_OF_DAY, 7);
+                cal.set(Calendar.MINUTE, 0);
+                cal.set(Calendar.SECOND, 0);
+                Date startSaveTime = cal.getTime();
 
-                    if (saveMoons.stream().map(b::contains).filter(x -> x).count() > 0) {
-                        ObjectMapper mapper = new ObjectMapper();
-                        String str = mapper.writeValueAsString(notification);
+                cal.setTime(new Date());
+                cal.set(Calendar.HOUR_OF_DAY, 20);
+                cal.set(Calendar.MINUTE, 0);
+                cal.set(Calendar.SECOND, 0);
+                Date endSaveTime = cal.getTime();
 
-                        LOG.debug("Going to send notification: " + str);
+                Boolean notificationIsAboutSaveMoons = (saveMoons.stream().map(b::contains).filter(x -> x).count() > 0);
+                Boolean notificationIsAboutRip = (b.contains("Ster des Doods"));
+                Boolean notificationIsAboutReturnToSaveMoon = (saveMoons.stream().map(y -> b.contains("naar planeet ["+y+"]")).filter(x -> x).count() > 0);
+                Boolean notificationIsBetweenSaveTimes = (rssEntry.getDate().after(startSaveTime) && rssEntry.getDate().before(endSaveTime));
 
+                Boolean notificationIsUrgent = (notificationIsAboutSaveMoons && (notificationIsAboutRip || (notificationIsAboutReturnToSaveMoon &&notificationIsBetweenSaveTimes)));
 
+                if (notificationIsUrgent) {
+                    ObjectMapper mapper = new ObjectMapper();
+                    String str = mapper.writeValueAsString(notification);
 
-                        HttpEntity<String> entity = new HttpEntity<>(str, headers);
-                        LOG.warn(entity.toString());
-                        restTemplate.postForEntity(pushbulletConfig.getUrl(), entity, String.class);
-                        LOG.info(rssEntry.toString());
-                    }
+                    LOG.info("Going to send notification: " + str);
+                    HttpEntity<String> entity = new HttpEntity<>(str, headers);
+                    restTemplate.postForEntity(pushbulletConfig.getUrl(), entity, String.class);
                 }
             }
         }
