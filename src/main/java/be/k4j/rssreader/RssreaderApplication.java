@@ -30,6 +30,7 @@ import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -66,7 +67,6 @@ public class RssReaderApplication {
     }
 
 
-
     @MessageEndpoint
     public static class Endpoint {
 
@@ -95,15 +95,35 @@ public class RssReaderApplication {
                 notification.setTitle(rssEntry.getTitle());
                 notification.setBody(rssEntry.getValue());
 
-                ObjectMapper mapper = new ObjectMapper();
-                String str = mapper.writeValueAsString(notification);
+
+                /**
+                 * Check if notification is `urgent`
+                 */
+                String b = notification.getBody();
+
+                //Step 1: Check if `Ster des Doods` occurs in the notification
+                if (b.contains("Ster des Doods")) {
+                    //Step 2: Check if the notification is about one of my "save-moons"
+
+                    ArrayList<String> saveMoons = new ArrayList<String>();
+                    saveMoons.add("1:77:8");
+                    saveMoons.add("1:159:9");
+                    saveMoons.add("1:240:9");
+
+                    if (saveMoons.stream().map(b::contains).filter(x -> x).count() > 0) {
+                        ObjectMapper mapper = new ObjectMapper();
+                        String str = mapper.writeValueAsString(notification);
+
+                        LOG.debug("Going to send notification: " + str);
 
 
 
-                HttpEntity<String> entity = new HttpEntity<>(str, headers);
-                LOG.warn(entity.toString());
-                restTemplate.postForEntity(pushbulletConfig.getUrl(), entity, String.class);
-                LOG.info(rssEntry.toString());
+                        HttpEntity<String> entity = new HttpEntity<>(str, headers);
+                        LOG.warn(entity.toString());
+                        restTemplate.postForEntity(pushbulletConfig.getUrl(), entity, String.class);
+                        LOG.info(rssEntry.toString());
+                    }
+                }
             }
         }
     }
