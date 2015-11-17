@@ -76,6 +76,7 @@ public class RssReaderApplication {
         @ServiceActivator(inputChannel = "feedChannel")
         public void log(Message<SyndEntry> message) throws Exception {
             SyndEntry payload = message.getPayload();
+            String b = payload.getDescription().getValue();
             RssEntry rssEntry = new RssEntry(payload.getTitle(), Jsoup.parse(payload.getDescription().getValue()).text(), payload.getLink(), payload.getPublishedDate());
 
             //LOG.info(rssEntry.toString());
@@ -96,8 +97,6 @@ public class RssReaderApplication {
                 notification.setTitle(rssEntry.getTitle());
                 notification.setBody("[["+ rssEntry.getDate().toString() +"]]" + rssEntry.getValue());
 
-                String b = notification.getBody();
-
                 ArrayList<String> saveMoons = new ArrayList<>();
                 saveMoons.add("1:77:8");
                 saveMoons.add("1:159:9");
@@ -117,10 +116,12 @@ public class RssReaderApplication {
 
                 Boolean notificationIsAboutSaveMoons = (saveMoons.stream().map(b::contains).filter(x -> x).count() > 0);
                 Boolean notificationIsAboutRip = (b.contains("Ster des Doods"));
+
+                Boolean notificationIsAboutSpy = (b.contains("is ontdekt in de buurt van je planeet"));
                 Boolean notificationIsAboutReturnToSaveMoon = (saveMoons.stream().map(y -> b.contains("naar planeet ["+y+"]")).filter(x -> x).count() > 0);
                 Boolean notificationIsBetweenSaveTimes = (rssEntry.getDate().after(startSaveTime) && rssEntry.getDate().before(endSaveTime));
 
-                Boolean notificationIsUrgent = (notificationIsAboutSaveMoons && (notificationIsAboutRip || (notificationIsAboutReturnToSaveMoon &&notificationIsBetweenSaveTimes)));
+                Boolean notificationIsUrgent = (notificationIsAboutSaveMoons && (notificationIsAboutRip || notificationIsAboutSpy ));
 
                 if (notificationIsUrgent) {
                     ObjectMapper mapper = new ObjectMapper();
