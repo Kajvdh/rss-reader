@@ -52,7 +52,7 @@ public class RssReaderApplication {
 
     @Bean
     @InboundChannelAdapter( value = "feedChannel",
-            poller = @Poller(maxMessagesPerPoll = "100", fixedDelay = "5000"))
+            poller = @Poller(maxMessagesPerPoll = "100", fixedDelay = "15000"))
     public FeedEntryMessageSource feedAdapter() throws MalformedURLException {
         Authenticator.setDefault(new Authenticator() {
 
@@ -73,7 +73,7 @@ public class RssReaderApplication {
         private RestTemplate restTemplate = new RestTemplate();
         private PushbulletConfig pushbulletConfig = new PushbulletConfig();
 
-        @ServiceActivator(inputChannel = "feedChannel")
+        @ServiceActivator(inputChannel = "feedChannel", poller = @Poller(maxMessagesPerPoll = "100", fixedDelay = "15000"))
         public void log(Message<SyndEntry> message) throws Exception {
             SyndEntry payload = message.getPayload();
             String b = payload.getDescription().getValue();
@@ -143,7 +143,7 @@ public class RssReaderApplication {
 
 //    @Bean(name = PollerMetadata.DEFAULT_POLLER)
 //    public PollerMetadata poller() {
-//        PeriodicTrigger trigger = new PeriodicTrigger(10);
+//        PeriodicTrigger trigger = new PeriodicTrigger(100000);
 //        trigger.setFixedRate(true);
 //        PollerMetadata pollerMetadata = new PollerMetadata();
 //        pollerMetadata.setTrigger(trigger);
