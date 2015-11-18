@@ -52,7 +52,7 @@ public class RssReaderApplication {
 
     @Bean
     @InboundChannelAdapter( value = "feedChannel",
-            poller = @Poller(maxMessagesPerPoll = "100", fixedRate = "5000"))
+            poller = @Poller(maxMessagesPerPoll = "100", fixedDelay = "5000"))
     public FeedEntryMessageSource feedAdapter() throws MalformedURLException {
         Authenticator.setDefault(new Authenticator() {
 
@@ -141,12 +141,12 @@ public class RssReaderApplication {
         return new QueueChannel(500);
     }
 
-    @Bean(name = PollerMetadata.DEFAULT_POLLER)
-    public PollerMetadata poller() {
-        PeriodicTrigger trigger = new PeriodicTrigger(10);
-        trigger.setFixedRate(true);
-        PollerMetadata pollerMetadata = new PollerMetadata();
-        pollerMetadata.setTrigger(trigger);
-        return pollerMetadata;
-    }
+//    @Bean(name = PollerMetadata.DEFAULT_POLLER)
+//    public PollerMetadata poller() {
+//        PeriodicTrigger trigger = new PeriodicTrigger(10);
+//        trigger.setFixedRate(true);
+//        PollerMetadata pollerMetadata = new PollerMetadata();
+//        pollerMetadata.setTrigger(trigger);
+//        return pollerMetadata;
+//    }
 }
